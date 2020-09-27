@@ -43,17 +43,17 @@ public class JDBCpostgreSQLClient {
 	/**
 	 * queryFor gives a command to the database and returns the results.
 	 * 
-	 * @param command The statement used to query in SQL.
+	 * @param sqlCommand The statement used to query in SQL.
 	 * @return A ResultSet object with data from the query that can be iterated through.
 	 */
 	public ResultSet queryFor(String sqlCommand)
 	{
-		ResultSet result;
+		ResultSet result = null;
 
 		try
 		{
-			Statement stmt = conn.createStatement();
-			String sqlStatement = command;
+			Statement stmt = connection.createStatement();
+			String sqlStatement = sqlCommand;
 			result = stmt.executeQuery(sqlStatement);
 		}
 		catch (Exception e)
