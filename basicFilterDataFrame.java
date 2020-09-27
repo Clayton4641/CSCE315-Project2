@@ -1,3 +1,6 @@
+/**
+ * Data frame to contain all the information inputted from a user to conduct an initial search
+ */
 public class basicFilterDataFrame {
     public String businessName;
     public String state;

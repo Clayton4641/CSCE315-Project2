@@ -1,6 +1,9 @@
+/**
+ * General information class intended for storing data from a initial business search
+ */
 public class basicBusinessDataFrame {
-    private String businessName;
-    private String businessID;
+    public String businessName;
+    public String businessID;
 
     basicBusinessDataFrame(String businessName, String businessID) {
         this.businessName = businessName;
