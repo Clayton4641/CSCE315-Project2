@@ -331,6 +331,15 @@ public class businessSearchGUI {
         int businessNameIndex = 0;
         int businessIDIndex = 1;
 
+        if (selectAllCheckBox.isSelected()){
+            int numberOfRows = initialSearchResultTable.getRowCount();
+            rows = new int[numberOfRows];
+
+            for(int i = 0;i<numberOfRows;i++){
+                rows[i] = i;
+            }
+        }
+
         for(int i : rows){
             String name = initialSearchResultTable.getValueAt(i,businessNameIndex).toString();
             String ID = initialSearchResultsModel.getValueAt(i,businessIDIndex).toString();
