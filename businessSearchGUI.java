@@ -111,7 +111,6 @@ public class businessSearchGUI {
 		
 		// Connect to database.
 		client = new JDBCpostgreSQLClient("jdbc:postgresql://csce-315-db.engr.tamu.edu/Team912_D16_DB", "username", "password");
-
 		
         //first set up the starsPanel, lowerRangeStarsList, upperRangeStarsList
         ArrayList<String> rangeElements = new ArrayList<>();
@@ -430,8 +429,6 @@ public class businessSearchGUI {
      * @return A panel where search results can be displayed and selected.
      */
     private JPanel basicSearchResultsPanel() {
-		System.out.println("Called2");
-
         JPanel resultsPanel = new JPanel(new GridBagLayout());
 
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
@@ -471,8 +468,16 @@ public class businessSearchGUI {
 	 * @param headers The header labels of each column
      */
     public void updateSearchPanel(ResultSet resultData) {
-        if (!isStarted) {
+		if (!isStarted) {
             throw new NullPointerException();
+		}
+
+		FileWriter writer = null;
+		
+		try {
+			writer = new FileWriter("table.csv"); 
+		} catch (Exception e) {
+			System.out.println("Writer not open");
 		}
 
 		initialSearchResultsModel.setColumnCount(0);
@@ -481,35 +486,56 @@ public class businessSearchGUI {
 		String[] headers = {};
 
 		// Column Headers
-		try
-		{
+		try {
 			ResultSetMetaData metadata = resultData.getMetaData();
 
 			System.out.println(metadata.getColumnCount());
 			headers = new String[metadata.getColumnCount()];
-			for (int i = 1; i <= metadata.getColumnCount(); ++i)
-			{
+
+			for (int i = 1; i <= metadata.getColumnCount(); ++i) {
 				System.out.println(metadata.getColumnLabel(i));
 				headers[i - 1] = metadata.getColumnLabel(i);
 			}
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			System.out.println("Bad metadata");
 		}
 
 		initialSearchResultsModel.setColumnCount(headers.length);
 		initialSearchResultsModel.setColumnIdentifiers(headers);
 
+		try {
+			if (saveToFileCheckBox.isSelected()) {
+				for (int i = 0; i < headers.length; ++i) {
+
+					if (writer != null) {
+						System.out.println("Woo");
+					}
+
+					writer.append(headers[i]);
+	
+					if (i != headers.length - 1) {
+						writer.append(",");
+					}
+					else {
+						writer.append("\n");
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+
 		// Table Rows
 		try {
 			while (resultData.next()) {
 				String[] data = new String[headers.length];
-    	        FileWriter writer = new FileWriter("table.csv"); 
+				
 				for (int i = 0; i < data.length; ++i)
 				{
 					data[i] = resultData.getString(i + 1);
-					if(saveToFileCheckBox != null) {			    	    
+
+					if(saveToFileCheckBox.isSelected()) {			    	    
 			    	    try { 
 			    	        // create FileWriter object with file as parameter 
 			    	        if(i != data.length-1) {
@@ -527,12 +553,14 @@ public class businessSearchGUI {
 			    	    } 
 			    	} 
 				}
-				writer.close();
 
 				initialSearchResultsModel.addRow(data);
 			}
+
+			writer.close();
+
 		} catch (Exception e) {
-			System.out.println("Database failure.");
+			e.printStackTrace();
 		}
 
 		initialSearchResultsModel.fireTableDataChanged();
