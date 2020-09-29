@@ -5,7 +5,7 @@ import java.util.List;
 
 import static java.lang.Thread.sleep;
 
-public class businessBasicSearchGUITest{
+public class businessBasicSearchGUITest {
     public static void main(String []args) throws InterruptedException {
 
         businessSearchGUI testGUI = new businessSearchGUI();

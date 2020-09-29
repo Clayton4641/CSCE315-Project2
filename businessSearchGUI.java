@@ -377,7 +377,7 @@ public class businessSearchGUI {
             String businessName = businessNameText.getText();
             String state = stateText.getText();
             String city = cityNameText.getText();
-            String postal = cityNameText.getText();
+            String postal = postalCodeText.getText();
             String street = streetText.getText();
 
             int lowerStarsIndex = lowerRangeStarsList.getSelectedIndex();
@@ -396,8 +396,10 @@ public class businessSearchGUI {
 
             basicFilterDataFrame packedData = new basicFilterDataFrame(businessName, state, city, postal, street, lowerStars
                     , upperStars, isOpen, isRestaurant, saveToFile);
-
+            System.out.println(state);
             //@TODO add the call to complete the search given the packed data frame.
+            String query = packedData.getQuery();
+            System.out.println(query);
         }
     }
 }
