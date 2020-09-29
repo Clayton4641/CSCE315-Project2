@@ -92,7 +92,7 @@ public class basicFilterDataFrame {
             business_string = business_string + "is_open = '1' ";
         }
         if (!business_string.equals("")) {
-            business_string = "SELECT business_id FROM businesses WHERE " + business_string;
+            business_string = "SELECT name, business_id FROM businesses WHERE " + business_string;
         }
         return business_string;
     }
@@ -118,6 +118,9 @@ public class basicFilterDataFrame {
                 query = query + "AND business_id IN (";
                 number_of_parenthesis++;
             }
+        } else {
+            query = query + "SELECT name, business_id FROM businesses WHERE business_id IN (";
+            number_of_parenthesis++;
         }
 
         if (!restaurant_string.equals("")) {
