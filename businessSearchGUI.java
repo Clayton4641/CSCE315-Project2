@@ -55,6 +55,38 @@ public class businessSearchGUI {
     private final int MAX_RESULT_DISPLAY_LENGTH = 250;
     private final int TEXT_BOX_WIDTH = 125;
 
+    
+    private JLabel header2Label = new JLabel("Advanced Query");
+    private JLabel separator2Label = new JLabel("-----------------------------------");
+    private JLabel businessIDsLabel = new JLabel("Business ids:");
+    private JLabel hoursLabel = new JLabel("Hours:");
+    private JLabel parkingLabel = new JLabel("Parking:");
+    private JLabel addressLabel = new JLabel("Address:");
+    private JLabel reviewsLabel = new JLabel("Reviews:");
+    private JLabel tipsLabel = new JLabel("Tips:");
+    private JLabel restaurantInfoLabel = new JLabel("Restaurant Info:");
+    private JLabel goodForMealLabel = new JLabel("Good For Meal");
+    private JLabel ambienceLabel = new JLabel("Ambience");
+    private JLabel dietaryRestrictionsLabel = new JLabel("Dietary Restrictions");
+
+    private JTextField businessIdsText = new JTextField();
+
+    private JCheckBox hoursCheckBox = new JCheckBox();
+    private JCheckBox parkingCheckBox = new JCheckBox();
+    private JCheckBox reviewsCheckBox = new JCheckBox();
+    private JCheckBox addressCheckBox = new JCheckBox();
+    private JCheckBox tipsCheckBox = new JCheckBox();
+    private JCheckBox restaurantInfoCheckBox = new JCheckBox();
+
+    private JButton queryButton = new JButton("Query");
+    
+    String[] goodForMeal = 	{"lunch", "dinner", "brunch", "breakfast", "latenight", "desert"};
+    String[] ambience = {"touristy", "hipster", "romantic", "intimate", "upscale", "classy", "casual", "divey"};
+    String[] dietaryRestrictions = {"dairy-free", "gluten-free","vegan", "halal", "kosher", "soy-free", "vegetarian"};
+
+    private JComboBox<String> goodForMealList = new JComboBox<String>(goodForMeal);
+    private JComboBox<String> ambienceList = new JComboBox<String>(ambience);
+    private JComboBox<String> dietaryRestrictionsList = new JComboBox<String>(dietaryRestrictions);
     private final String[] TABLE_BASIC_COLUMN_ITEMS = {"Business", "Business_ID"};
 
     private DefaultTableModel initialSearchResultsModel = new DefaultTableModel(TABLE_BASIC_COLUMN_ITEMS, 0);
@@ -117,6 +149,8 @@ public class businessSearchGUI {
         JPanel businessPanel = new JPanel(new GridBagLayout());
 
         JPanel searchInfoPanel = basicInformationInputGrid();
+       
+        JPanel searchAdvancedInfoPanel = AdvancedInformationInputGrid();
 
         JPanel searchResultPanel = basicSearchResultsPanel();
 
@@ -140,6 +174,11 @@ public class businessSearchGUI {
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
         filterDataPanel.add(searchInfoPanel, gridBagConstraints);
+        
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        filterDataPanel.add(searchAdvancedInfoPanel, gridBagConstraints);
 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -249,6 +288,95 @@ public class businessSearchGUI {
         return inputGrid;
     }
 
+    private JPanel AdvancedInformationInputGrid() {
+        final int ROWS2 = 9;
+        final int COLUMNS2 = 4;
+        final int MAX_POSITIONS2 = ROWS2 * COLUMNS2;
+
+        JPanel inputGrid2 = new JPanel();
+
+        inputGrid2.setLayout(new GridBagLayout());
+
+        GridBagConstraints gridConstraints = new GridBagConstraints();
+
+        for (int i = 0; i < MAX_POSITIONS2; i++) {
+            int[] gridPositions = indexConverter(i, COLUMNS2);
+            gridConstraints.gridx = gridPositions[0];
+            gridConstraints.gridy = gridPositions[1];
+            switch (i) {
+                case 0:
+                	inputGrid2.add(businessIDsLabel, gridConstraints);
+                    break;
+                case 1:
+                    gridConstraints.ipadx = TEXT_BOX_WIDTH;
+                    inputGrid2.add(businessIdsText, gridConstraints);
+                    break;
+                case 2:
+                	inputGrid2.add(hoursLabel, gridConstraints);
+                    break;
+                case 3:
+                	inputGrid2.add(hoursCheckBox, gridConstraints);
+                    break;
+                case 4:
+                	inputGrid2.add(parkingLabel, gridConstraints);
+                    break;
+                case 5:
+                	inputGrid2.add(parkingCheckBox, gridConstraints);
+                    break;
+                case 6:
+                	inputGrid2.add(addressLabel, gridConstraints);
+                    break;
+                case 7:
+                	inputGrid2.add(addressCheckBox, gridConstraints);
+                    break;
+                case 8:
+                	inputGrid2.add(reviewsLabel, gridConstraints);
+                    break;
+                case 9:
+                	inputGrid2.add(reviewsCheckBox, gridConstraints);
+                    break;
+                case 12:
+                	inputGrid2.add(tipsLabel, gridConstraints);
+                    break;
+                case 13:
+                	inputGrid2.add(tipsCheckBox, gridConstraints);
+                    break;
+                case 16:
+                	inputGrid2.add(restaurantInfoLabel, gridConstraints);
+                    break;
+                case 17:
+                	inputGrid2.add(restaurantInfoCheckBox, gridConstraints);
+                    break;
+                case 20:
+                	inputGrid2.add(ambienceLabel, gridConstraints);
+                    break;
+                case 21:
+                	inputGrid2.add(ambienceList, gridConstraints);
+                    break;
+                case 24:
+                	inputGrid2.add(goodForMealLabel, gridConstraints);
+                    break;
+                case 25:
+                	inputGrid2.add(goodForMealList, gridConstraints);
+                    break;
+                case 28:
+                	inputGrid2.add(dietaryRestrictionsLabel, gridConstraints);
+                    break;
+                case 29:
+                	inputGrid2.add(dietaryRestrictionsList, gridConstraints);
+                    break;
+                case 32:
+                	inputGrid2.add(queryButton, gridConstraints);
+                    break;
+                default:
+                	inputGrid2.add(new JLabel(), gridConstraints);
+                    break;
+            }
+            gridConstraints.ipadx = 0;
+        }
+
+        return inputGrid2;
+    }
     /**
      * Creates a panel to be used for displaying and selecting items from our initial search.
      *
@@ -377,7 +505,7 @@ public class businessSearchGUI {
             String businessName = businessNameText.getText();
             String state = stateText.getText();
             String city = cityNameText.getText();
-            String postal = postalCodeText.getText();
+            String postal = cityNameText.getText();
             String street = streetText.getText();
 
             int lowerStarsIndex = lowerRangeStarsList.getSelectedIndex();
@@ -396,10 +524,8 @@ public class businessSearchGUI {
 
             basicFilterDataFrame packedData = new basicFilterDataFrame(businessName, state, city, postal, street, lowerStars
                     , upperStars, isOpen, isRestaurant, saveToFile);
-            System.out.println(state);
+
             //@TODO add the call to complete the search given the packed data frame.
-            String query = packedData.getQuery();
-            System.out.println(query);
         }
     }
 }
