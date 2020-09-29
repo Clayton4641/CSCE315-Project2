@@ -574,12 +574,12 @@ public class businessSearchGUI {
             String businessName = businessNameText.getText();
             String state = stateText.getText();
             String city = cityNameText.getText();
-            String postal = cityNameText.getText();
+            String postal = postalCodeText.getText();
             String street = streetText.getText();
 
-            String [] ambience = {};
-            String [] goodForMeal = {};
-            String [] dietaryRestrictions = {};
+            String ambience = (ambienceList.getSelectedObjects())[0].toString();;
+            String goodForMeal = (goodForMealList.getSelectedObjects())[0].toString();
+            String dietaryRestrictions = (dietaryRestrictionsList.getSelectedObjects()[0]).toString();
 
             int lowerStarsIndex = lowerRangeStarsList.getSelectedIndex();
             int upperStarsIndex = upperRangeStarsList.getSelectedIndex();
@@ -594,6 +594,7 @@ public class businessSearchGUI {
             boolean address = addressCheckBox.isSelected();
             boolean parking = parkingCheckBox.isSelected();
 
+            /*
             if (isRestaurant){
                 Object [] obj = ambienceList.getSelectedObjects();
                 ambience = new String[obj.length];
@@ -607,8 +608,7 @@ public class businessSearchGUI {
                 dietaryRestrictions = new String[obj.length];
                 System.arraycopy(obj,0,dietaryRestrictions,0,obj.length);
             }
-
-            System.out.println(Arrays.toString(ambience));
+            */
 
 
 //            if (lowerStarsIndex > upperStarsIndex) {
@@ -623,7 +623,8 @@ public class businessSearchGUI {
 			System.out.println(q);
 
 			ResultSet result = client.queryFor(q);
-			
+			System.out.println("DONE WITH QUERY");
+
 			updateSearchPanel(result);
         }
     }
