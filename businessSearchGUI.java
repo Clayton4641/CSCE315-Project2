@@ -3,6 +3,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -107,8 +110,9 @@ public class businessSearchGUI {
     public void start() {
 		
 		// Connect to database.
-		client = new JDBCpostgreSQLClient("jdbc:postgresql://csce-315-db.engr.tamu.edu/Team912_D16_DB", "username", "password");
+		client = new JDBCpostgreSQLClient("jdbc:postgresql://csce-315-db.engr.tamu.edu/Team912_D16_DB", "kaushal", "627003646");
 
+		
         //first set up the starsPanel, lowerRangeStarsList, upperRangeStarsList
         ArrayList<String> rangeElements = new ArrayList<>();
 
@@ -501,11 +505,29 @@ public class businessSearchGUI {
 		try {
 			while (resultData.next()) {
 				String[] data = new String[headers.length];
-
+    	        FileWriter writer = new FileWriter("table.csv"); 
 				for (int i = 0; i < data.length; ++i)
 				{
 					data[i] = resultData.getString(i + 1);
+					if(saveToFileCheckBox != null) {			    	    
+			    	    try { 
+			    	        // create FileWriter object with file as parameter 
+			    	        if(i != data.length-1) {
+			    	        	writer.append(data[i]);
+			    	        	writer.append(",");
+			    	        }
+			    	        else {
+			    	        	writer.append(data[i]);
+			    	        	writer.append("\n");
+			    	        }
+			    	    } 
+			    	    catch (IOException e) { 
+			    	        // TODO Auto-generated catch block 
+			    	        e.printStackTrace(); 
+			    	    } 
+			    	} 
 				}
+				writer.close();
 
 				initialSearchResultsModel.addRow(data);
 			}
