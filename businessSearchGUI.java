@@ -7,11 +7,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.sql.*;
 
 /**
  * A class to contain all the needed components to build the GUI and display and update it.
  */
 public class businessSearchGUI {
+
+	private JDBCpostgreSQLClient client;
 
     private JFrame mainFame = new JFrame();
 
@@ -89,8 +92,7 @@ public class businessSearchGUI {
     private JComboBox<String> ambienceList = new JComboBox<String>(ambience);
     private JComboBox<String> dietaryRestrictionsList = new JComboBox<String>(dietaryRestrictions);
     private final String[] TABLE_BASIC_COLUMN_ITEMS = {"Business", "Business_ID"};
-
-    private DefaultTableModel initialSearchResultsModel = new DefaultTableModel(TABLE_BASIC_COLUMN_ITEMS, 0);
+	private DefaultTableModel initialSearchResultsModel = new DefaultTableModel(TABLE_BASIC_COLUMN_ITEMS, 0);
 
     /**
      * Method to initialize any components that are not ready for use from initialization when the instance was made
@@ -103,6 +105,10 @@ public class businessSearchGUI {
      * Then initializes and fills the main business frame and displays it.
      */
     public void start() {
+		
+		// Connect to database.
+		client = new JDBCpostgreSQLClient("jdbc:postgresql://csce-315-db.engr.tamu.edu/Team912_D16_DB", "phand97", "Pincone321");
+
         //first set up the starsPanel, lowerRangeStarsList, upperRangeStarsList
         ArrayList<String> rangeElements = new ArrayList<>();
 
@@ -131,7 +137,6 @@ public class businessSearchGUI {
 
         //last we finish setting up the searchButton
         searchButton.addActionListener(new dataPuller());
-
 
         mainFame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -421,6 +426,8 @@ public class businessSearchGUI {
      * @return A panel where search results can be displayed and selected.
      */
     private JPanel basicSearchResultsPanel() {
+		System.out.println("Called2");
+
         JPanel resultsPanel = new JPanel(new GridBagLayout());
 
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
@@ -457,33 +464,56 @@ public class businessSearchGUI {
      * Method to take results from an initial filter search and place them into the initial search table.
      *
      * @param resultData The data from the initial search packed into basicBusinessDataFrames.
+	 * @param headers The header labels of each column
      */
-    public void updateSearchPanel(Iterable<basicBusinessDataFrame> resultData) {
+    public void updateSearchPanel(ResultSet resultData) {
         if (!isStarted) {
             throw new NullPointerException();
-        }
-        ArrayList<Object[]> tableData = new ArrayList<>();
+		}
 
-        for (basicBusinessDataFrame frame : resultData) {
-            ArrayList<Object> frameData = new ArrayList<>();
+		initialSearchResultsModel.setColumnCount(0);
+		initialSearchResultsModel.setRowCount(0);
 
-            String businessName = frame.getBusinessName();
-            String businessID = frame.getBusinessID();
+		String[] headers = {};
 
-//            frameData.add(Boolean.FALSE);
-            frameData.add(businessName);
-            frameData.add(businessID);
+		// Column Headers
+		try
+		{
+			ResultSetMetaData metadata = resultData.getMetaData();
 
-            Object[] arrayData = frameData.toArray();
+			System.out.println(metadata.getColumnCount());
+			headers = new String[metadata.getColumnCount()];
+			for (int i = 1; i <= metadata.getColumnCount(); ++i)
+			{
+				System.out.println(metadata.getColumnLabel(i));
+				headers[i - 1] = metadata.getColumnLabel(i);
+			}
+		}
+		catch (Exception e)
+		{
+			System.out.println("Bad metadata");
+		}
 
-            tableData.add(arrayData);
-        }
+		initialSearchResultsModel.setColumnCount(headers.length);
+		initialSearchResultsModel.setColumnIdentifiers(headers);
 
-        for (Object[] i : tableData) {
-            initialSearchResultsModel.addRow(i);
-        }
+		// Table Rows
+		try {
+			while (resultData.next()) {
+				String[] data = new String[headers.length];
 
-        initialSearchResultsModel.fireTableDataChanged();
+				for (int i = 0; i < data.length; ++i)
+				{
+					data[i] = resultData.getString(i + 1);
+				}
+
+				initialSearchResultsModel.addRow(data);
+			}
+		} catch (Exception e) {
+			System.out.println("Database failure.");
+		}
+
+		initialSearchResultsModel.fireTableDataChanged();
     }
 
     /**
@@ -510,7 +540,8 @@ public class businessSearchGUI {
             String name = initialSearchResultTable.getValueAt(i,businessNameIndex).toString();
             String ID = initialSearchResultsModel.getValueAt(i,businessIDIndex).toString();
 
-            dataFrames.add(new basicBusinessDataFrame(name,ID));
+			String[] data = {name, ID};
+            dataFrames.add(new basicBusinessDataFrame(data));
         }
 
         return dataFrames;
@@ -587,8 +618,13 @@ public class businessSearchGUI {
             basicFilterDataFrame packedData = new basicFilterDataFrame(businessName, state, city, postal, street, lowerStars
                     , upperStars, isOpen, isRestaurant, saveToFile,businessIDs,address,parking,ambience,goodForMeal,dietaryRestrictions);
 
-            //@TODO add the call to complete the search given the packed data frame.
-            String q = packedData.getQuery();
+			String q = packedData.getQuery();
+
+			System.out.println(q);
+
+			ResultSet result = client.queryFor(q);
+			
+			updateSearchPanel(result);
         }
     }
 }

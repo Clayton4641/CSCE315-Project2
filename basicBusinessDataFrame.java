@@ -2,19 +2,21 @@
  * General information class intended for storing data from a initial business search
  */
 public class basicBusinessDataFrame {
-    public String businessName;
-    public String businessID;
 
-    basicBusinessDataFrame(String businessName, String businessID) {
-        this.businessName = businessName;
-        this.businessID = businessID;
-    }
+	public String[] data;
+	
+	basicBusinessDataFrame(String[] _data)
+	{
+		data = new String[_data.length];
+		
+		for (int i = 0; i < _data.length; ++i)
+		{
+			data[i] = _data[i];
+		}
+	}
 
-    public String getBusinessName() {
-        return businessName;
-    }
-
-    public String getBusinessID() {
-        return businessID;
-    }
+	String getColumn(int column)
+	{
+		return data[column];
+	}
 }
