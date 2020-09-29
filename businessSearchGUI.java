@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class businessSearchGUI {
 
     private JLabel headerLabel = new JLabel("Filter for Business IDs");
     private JLabel separatorLabel = new JLabel("-----------------------------------");
+    private JLabel separatorLabel2 = new JLabel("-----------------------------------");
     private JLabel businessNameLabel = new JLabel("Business Name:");
     private JLabel starsLabel = new JLabel("Stars:");
     private JLabel stateLabel = new JLabel("State:");
@@ -51,13 +53,12 @@ public class businessSearchGUI {
     public boolean isStarted = false;
 
     private final int MAX_RESULT_DISPLAY_VALUE = 10;
-    private final int MAX_RESULT_DISPLAY_WIDTH = 400;
-    private final int MAX_RESULT_DISPLAY_LENGTH = 250;
-    private final int TEXT_BOX_WIDTH = 125;
+    private final int MAX_RESULT_DISPLAY_WIDTH = 500;
+    private final int MAX_RESULT_DISPLAY_LENGTH = 500;
+    private final int TEXT_BOX_WIDTH = 100;
 
     
-    private JLabel header2Label = new JLabel("Advanced Query");
-    private JLabel separator2Label = new JLabel("-----------------------------------");
+    private JLabel additionalInfoLabel = new JLabel("Display Additional Information");
     private JLabel businessIDsLabel = new JLabel("Business ids:");
     private JLabel hoursLabel = new JLabel("Hours:");
     private JLabel parkingLabel = new JLabel("Parking:");
@@ -69,7 +70,7 @@ public class businessSearchGUI {
     private JLabel ambienceLabel = new JLabel("Ambience");
     private JLabel dietaryRestrictionsLabel = new JLabel("Dietary Restrictions");
 
-    private JTextField businessIdsText = new JTextField();
+    private JCheckBox businessIdsCheckBox = new JCheckBox();
 
     private JCheckBox hoursCheckBox = new JCheckBox();
     private JCheckBox parkingCheckBox = new JCheckBox();
@@ -80,9 +81,9 @@ public class businessSearchGUI {
 
     private JButton queryButton = new JButton("Query");
     
-    String[] goodForMeal = 	{"lunch", "dinner", "brunch", "breakfast", "latenight", "desert"};
-    String[] ambience = {"touristy", "hipster", "romantic", "intimate", "upscale", "classy", "casual", "divey"};
-    String[] dietaryRestrictions = {"dairy-free", "gluten-free","vegan", "halal", "kosher", "soy-free", "vegetarian"};
+    String[] goodForMeal = 	{"None","lunch", "dinner", "brunch", "breakfast", "latenight", "desert"};
+    String[] ambience = {"None","touristy", "hipster", "romantic", "intimate", "upscale", "classy", "casual", "divey"};
+    String[] dietaryRestrictions = {"None","dairy-free", "gluten-free","vegan", "halal", "kosher", "soy-free", "vegetarian"};
 
     private JComboBox<String> goodForMealList = new JComboBox<String>(goodForMeal);
     private JComboBox<String> ambienceList = new JComboBox<String>(ambience);
@@ -118,6 +119,10 @@ public class businessSearchGUI {
         lowerRangeStarsList.setSelectedIndex(0);
         upperRangeStarsList.setSelectedIndex(maxRangeValue - 1);
 
+        ambienceList.setSelectedIndex(0);
+        goodForMealList.setSelectedIndex(0);
+        dietaryRestrictionsList.setSelectedIndex(0);
+
         starsPanel = new JPanel(new FlowLayout());
 
         starsPanel.add(lowerRangeStarsList);
@@ -150,7 +155,7 @@ public class businessSearchGUI {
 
         JPanel searchInfoPanel = basicInformationInputGrid();
        
-        JPanel searchAdvancedInfoPanel = AdvancedInformationInputGrid();
+        //JPanel searchAdvancedInfoPanel = AdvancedInformationInputGrid();
 
         JPanel searchResultPanel = basicSearchResultsPanel();
 
@@ -175,10 +180,10 @@ public class businessSearchGUI {
         gridBagConstraints.anchor = GridBagConstraints.WEST;
         filterDataPanel.add(searchInfoPanel, gridBagConstraints);
         
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = GridBagConstraints.WEST;
-        filterDataPanel.add(searchAdvancedInfoPanel, gridBagConstraints);
+//        gridBagConstraints.gridx = 0;
+//        gridBagConstraints.gridy = 3;
+//        gridBagConstraints.anchor = GridBagConstraints.WEST;
+//        filterDataPanel.add(searchAdvancedInfoPanel, gridBagConstraints);
 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -201,7 +206,7 @@ public class businessSearchGUI {
      * @return A JPanel with the input boxes to search for a business
      */
     private JPanel basicInformationInputGrid() {
-        final int ROWS = 8;
+        final int ROWS = 18;
         final int COLUMNS = 4;
         final int MAX_POSITIONS = ROWS * COLUMNS;
 
@@ -215,31 +220,23 @@ public class businessSearchGUI {
             int[] gridPositions = indexConverter(i, COLUMNS);
             gridConstraints.gridx = gridPositions[0];
             gridConstraints.gridy = gridPositions[1];
+            gridConstraints.ipadx = 5;
+            gridConstraints.ipady = 5;
+            gridConstraints.anchor = GridBagConstraints.WEST;
             switch (i) {
                 case 0:
+                    gridConstraints.anchor = GridBagConstraints.WEST;
                     inputGrid.add(businessNameLabel, gridConstraints);
                     break;
                 case 1:
                     gridConstraints.ipadx = TEXT_BOX_WIDTH;
                     inputGrid.add(businessNameText, gridConstraints);
                     break;
-                case 2:
-                    inputGrid.add(restaurantLabel, gridConstraints);
-                    break;
-                case 3:
-                    inputGrid.add(restaurantCheckBox, gridConstraints);
-                    break;
                 case 4:
                     inputGrid.add(starsLabel, gridConstraints);
                     break;
                 case 5:
                     inputGrid.add(starsPanel, gridConstraints);
-                    break;
-                case 6:
-                    inputGrid.add(saveToFileLabel, gridConstraints);
-                    break;
-                case 7:
-                    inputGrid.add(saveToFileCheckBox, gridConstraints);
                     break;
                 case 8:
                     inputGrid.add(stateLabel, gridConstraints);
@@ -273,16 +270,75 @@ public class businessSearchGUI {
                     inputGrid.add(isOpenLabel, gridConstraints);
                     break;
                 case 25:
+                    gridConstraints.anchor = GridBagConstraints.WEST;
                     inputGrid.add(isOpenCheckBox, gridConstraints);
                     break;
                 case 28:
-                    inputGrid.add(searchButton, gridConstraints);
+                    inputGrid.add(restaurantLabel, gridConstraints);
+                    break;
+                case 29:
+                    gridConstraints.anchor = GridBagConstraints.WEST;
+                    inputGrid.add(restaurantCheckBox, gridConstraints);
+                    break;
+                case 32:
+                    inputGrid.add(ambienceLabel, gridConstraints);
+                    break;
+                case 33:
+                    gridConstraints.anchor = GridBagConstraints.WEST;
+                    inputGrid.add(ambienceList, gridConstraints);
+                    break;
+                case 36:
+                    inputGrid.add(goodForMealLabel, gridConstraints);
+                    break;
+                case 37:
+                    gridConstraints.anchor = GridBagConstraints.WEST;
+                    inputGrid.add(goodForMealList, gridConstraints);
+                    break;
+                case 40:
+                    inputGrid.add(dietaryRestrictionsLabel, gridConstraints);
+                    break;
+                case 41:
+                    gridConstraints.anchor = GridBagConstraints.WEST;
+                    inputGrid.add(dietaryRestrictionsList, gridConstraints);
+                    break;
+                case 44:
+                    inputGrid.add(additionalInfoLabel,gridConstraints);
+                    break;
+                case 48:
+                    gridConstraints.anchor = GridBagConstraints.WEST;
+                    inputGrid.add(separatorLabel2,gridConstraints);
+                    break;
+                case 52:
+                    inputGrid.add(businessIDsLabel,gridConstraints);
+                    break;
+                case 53:
+                    gridConstraints.anchor = GridBagConstraints.WEST;
+                    inputGrid.add(businessIdsCheckBox,gridConstraints);
+                case 56:
+                    inputGrid.add(addressLabel,gridConstraints);
+                    break;
+                case 57:
+                    inputGrid.add(addressCheckBox,gridConstraints);
+                    break;
+                case 60:
+                    inputGrid.add(parkingLabel,gridConstraints);
+                    break;
+                case 61:
+                    inputGrid.add(parkingCheckBox,gridConstraints);
+                    break;
+                case 64:
+                    inputGrid.add(saveToFileLabel,gridConstraints);
+                    break;
+                case 65:
+                    inputGrid.add(saveToFileCheckBox,gridConstraints);
+                    break;
+                case 68:
+                    inputGrid.add(searchButton,gridConstraints);
                     break;
                 default:
                     inputGrid.add(new JLabel(), gridConstraints);
                     break;
             }
-            gridConstraints.ipadx = 0;
         }
 
         return inputGrid;
@@ -309,7 +365,7 @@ public class businessSearchGUI {
                     break;
                 case 1:
                     gridConstraints.ipadx = TEXT_BOX_WIDTH;
-                    inputGrid2.add(businessIdsText, gridConstraints);
+                    inputGrid2.add(businessIdsCheckBox, gridConstraints);
                     break;
                 case 2:
                 	inputGrid2.add(hoursLabel, gridConstraints);
@@ -347,24 +403,6 @@ public class businessSearchGUI {
                 case 17:
                 	inputGrid2.add(restaurantInfoCheckBox, gridConstraints);
                     break;
-                case 20:
-                	inputGrid2.add(ambienceLabel, gridConstraints);
-                    break;
-                case 21:
-                	inputGrid2.add(ambienceList, gridConstraints);
-                    break;
-                case 24:
-                	inputGrid2.add(goodForMealLabel, gridConstraints);
-                    break;
-                case 25:
-                	inputGrid2.add(goodForMealList, gridConstraints);
-                    break;
-                case 28:
-                	inputGrid2.add(dietaryRestrictionsLabel, gridConstraints);
-                    break;
-                case 29:
-                	inputGrid2.add(dietaryRestrictionsList, gridConstraints);
-                    break;
                 case 32:
                 	inputGrid2.add(queryButton, gridConstraints);
                     break;
@@ -399,8 +437,8 @@ public class businessSearchGUI {
 
         selectAllPanel.setLayout(new FlowLayout());
 
-        selectAllPanel.add(selectAllLabel);
-        selectAllPanel.add(selectAllCheckBox);
+//        selectAllPanel.add(selectAllLabel);
+//        selectAllPanel.add(selectAllCheckBox);
 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -508,6 +546,10 @@ public class businessSearchGUI {
             String postal = cityNameText.getText();
             String street = streetText.getText();
 
+            String [] ambience = {};
+            String [] goodForMeal = {};
+            String [] dietaryRestrictions = {};
+
             int lowerStarsIndex = lowerRangeStarsList.getSelectedIndex();
             int upperStarsIndex = upperRangeStarsList.getSelectedIndex();
 
@@ -517,15 +559,36 @@ public class businessSearchGUI {
             boolean isOpen = isOpenCheckBox.isSelected();
             boolean isRestaurant = restaurantCheckBox.isSelected();
             boolean saveToFile = saveToFileCheckBox.isSelected();
+            boolean businessIDs = businessIdsCheckBox.isSelected();
+            boolean address = addressCheckBox.isSelected();
+            boolean parking = parkingCheckBox.isSelected();
+
+            if (isRestaurant){
+                Object [] obj = ambienceList.getSelectedObjects();
+                ambience = new String[obj.length];
+                System.arraycopy(obj,0,ambience,0,obj.length);
+
+                obj = goodForMealList.getSelectedObjects();
+                goodForMeal = new String[obj.length];
+                System.arraycopy(obj,0,goodForMeal,0,obj.length);
+
+                obj = dietaryRestrictionsList.getSelectedObjects();
+                dietaryRestrictions = new String[obj.length];
+                System.arraycopy(obj,0,dietaryRestrictions,0,obj.length);
+            }
+
+            System.out.println(Arrays.toString(ambience));
+
 
 //            if (lowerStarsIndex > upperStarsIndex) {
 //                throw new IndexOutOfBoundsException("Selected lower stars value is larger than upper stars");
 //            }
 
             basicFilterDataFrame packedData = new basicFilterDataFrame(businessName, state, city, postal, street, lowerStars
-                    , upperStars, isOpen, isRestaurant, saveToFile);
+                    , upperStars, isOpen, isRestaurant, saveToFile,businessIDs,address,parking,ambience,goodForMeal,dietaryRestrictions);
 
             //@TODO add the call to complete the search given the packed data frame.
+            String q = packedData.getQuery();
         }
     }
 }

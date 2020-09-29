@@ -27,22 +27,22 @@ public class businessBasicSearchGUITest {
             System.out.println(i.getBusinessName());
 		}
 
-		JDBCpostgreSQLClient client = new JDBCpostgreSQLClient("jdbc:postgresql://csce-315-db.engr.tamu.edu/Team912_D16_DB", "username", "password");
-
-		System.out.println("Starting query...");
-		ResultSet result = client.queryFor("SELECT * FROM public.businesses ORDER BY business_id ASC LIMIT 100");
-		System.out.println("Query finished!");
-
-		try
-		{
-			while (result.next())
-			{
-				System.out.println("Business ID: " + result.getString("business_id") + "Name: " + result.getString("name"));
-			}
-		}
-		catch (Exception e)
-		{
-			System.out.println("Error occured");
-		}
+//		JDBCpostgreSQLClient client = new JDBCpostgreSQLClient("jdbc:postgresql://csce-315-db.engr.tamu.edu/Team912_D16_DB", "username", "password");
+//
+//		System.out.println("Starting query...");
+//		ResultSet result = client.queryFor("SELECT * FROM public.businesses ORDER BY business_id ASC LIMIT 100");
+//		System.out.println("Query finished!");
+//
+//		try
+//		{
+//			while (result.next())
+//			{
+//				System.out.println("Business ID: " + result.getString("business_id") + "Name: " + result.getString("name"));
+//			}
+//		}
+//		catch (Exception e)
+//		{
+//			System.out.println("Error occured");
+//		}
 	}
 }

@@ -8,15 +8,24 @@ public class basicFilterDataFrame {
     public String postal;
     public String street;
 
+    public String [] ambienceItems;
+    public String [] goodForMeal;
+    public String [] dietaryRestrictions;
+
     public int lowerStars;
     public int upperStars;
 
     public boolean isOpen;
     public boolean isRestaurant;
     public boolean saveToFile;
+    public boolean businessIDs;
+    public boolean address;
+    public boolean parking;
 
     basicFilterDataFrame(String businessName, String state, String city, String postal, String street, int lowerStars,
-                         int upperStars, boolean isOpen, boolean isRestaurant,boolean saveToFile) {
+                         int upperStars, boolean isOpen, boolean isRestaurant,boolean saveToFile,boolean businessIDs,
+                         boolean address,boolean parking,String [] ambienceItems,String [] goodForMeal,
+                         String [] dietaryRestrictions) {
         this.businessName = businessName;
         this.state = state;
         this.city = city;
@@ -29,6 +38,13 @@ public class basicFilterDataFrame {
         this.isOpen = isOpen;
         this.isRestaurant = isRestaurant;
         this.saveToFile = saveToFile;
+        this.businessIDs = businessIDs;
+        this.address = address;
+        this.parking = parking;
+
+        this.ambienceItems = ambienceItems;
+        this.goodForMeal = goodForMeal;
+        this.dietaryRestrictions = dietaryRestrictions;
     }
 
     public String getAddressQuery() {
