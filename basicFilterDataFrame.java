@@ -225,6 +225,7 @@ public class basicFilterDataFrame {
             query = query + business_string;
             if (!address_string.equals("") || !restaurant_string.equals("") || !attribute_string.equals("")) {
                 query = query + "AND businesses.business_id IN (";
+                number_of_parenthesis++;
             }
         } else {
             if (address || parking) {
@@ -233,12 +234,13 @@ public class basicFilterDataFrame {
                 query += " WHERE ";
             }
             query = query + "businesses.business_id IN (";
+            number_of_parenthesis++;
         }
         //else if (!address_string.equals("") || !restaurant_string.equals("") || !attribute_string.equals("")){
         //    query = query + "AND businesses.business_id IN (";
         //}
 
-        number_of_parenthesis++;
+
 
 
         if (!attribute_string.equals("")) {
