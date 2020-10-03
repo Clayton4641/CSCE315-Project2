@@ -1,3 +1,6 @@
+/**
+ * GeoLocation pairs a logitude and latitude together.
+ */
 public class GeoLocation {
 	
 	public double longitude;
