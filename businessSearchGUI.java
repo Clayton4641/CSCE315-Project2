@@ -3,11 +3,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.sql.*;
@@ -17,13 +15,15 @@ import java.sql.*;
  */
 public class businessSearchGUI {
 
+    //Main Search GUI Items/////////////////////////////////////////////////////////////////////////////////////////////
 	private JDBCpostgreSQLClient client;
 
-    private JFrame mainFame = new JFrame();
+    private JFrame mainFrame = new JFrame();
 
     private JLabel headerLabel = new JLabel("Filter for Business IDs");
-    private JLabel separatorLabel = new JLabel("-----------------------------------");
-    private JLabel separatorLabel2 = new JLabel("-----------------------------------");
+    private JLabel separatorLabel = new JLabel("-----------------------------------------------------------------------------------------------");
+    private JLabel separatorLabel2 = new JLabel("-----------------------------------------------------------------------------------------------");
+    private JLabel separatorLabel3 = new JLabel("-----------------------------------------------------------------------------------------------");
     private JLabel businessNameLabel = new JLabel("Business Name:");
     private JLabel starsLabel = new JLabel("Stars:");
     private JLabel stateLabel = new JLabel("State:");
@@ -35,6 +35,7 @@ public class businessSearchGUI {
     private JLabel starsRangeLabel = new JLabel("to");
     private JLabel selectAllLabel = new JLabel("Select all");
     private JLabel saveToFileLabel = new JLabel("Save to file");
+    private JLabel specialSearchLabel = new JLabel("Special Searches");
 
     private JTextField businessNameText = new JTextField();
     private JTextField stateText = new JTextField();
@@ -48,6 +49,10 @@ public class businessSearchGUI {
     private JCheckBox saveToFileCheckBox = new JCheckBox();
 
     private JButton searchButton = new JButton("Search for IDs");
+    private JButton shortestChainButton = new JButton("Shortest Chain Search");
+    private JButton userSummaryButton = new JButton("User Summary");
+    private JButton furthestSpreadButton = new JButton("Furthest Spread Search");
+    private JButton bestLocalButton = new JButton("Best Local Restaurant Search");
 
     private JComboBox lowerRangeStarsList = new JComboBox();
     private JComboBox upperRangeStarsList = new JComboBox();
@@ -55,6 +60,8 @@ public class businessSearchGUI {
     private JTable initialSearchResultTable = new JTable();
 
     private JPanel starsPanel = new JPanel();
+
+    private JTabbedPane tabsPane = new JTabbedPane();
 
     public boolean isStarted = false;
 
@@ -97,6 +104,8 @@ public class businessSearchGUI {
     private final String[] TABLE_BASIC_COLUMN_ITEMS = {"Business", "Business_ID"};
 	private DefaultTableModel initialSearchResultsModel = new DefaultTableModel(TABLE_BASIC_COLUMN_ITEMS, 0);
 
+	//Main GUI Items End////////////////////////////////////////////////////////////////////////////////////////////////
+
     /**
      * Method to initialize any components that are not ready for use from initialization when the instance was made
      * This includes the following:
@@ -138,18 +147,26 @@ public class businessSearchGUI {
         starsPanel.add(starsRangeLabel);
         starsPanel.add(upperRangeStarsList);
 
+//        tabsPane.add("Main search",makeGUI());
+//        tabsPane.add(shortestPathTabName,makeShortestChainPanel());
+
         //last we finish setting up the searchButton
         searchButton.addActionListener(new dataPuller());
 
-        mainFame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        shortestChainButton.addActionListener(new shortestChainHandler());
+        userSummaryButton.addActionListener(new userSummaryHandler());
+        furthestSpreadButton.addActionListener(new furthestSpreadHandler());
+        bestLocalButton.addActionListener(new bestLocalHandler());
 
-        mainFame.setLayout(new GridLayout());
+        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        mainFame.add(makeGUI());
+        mainFrame.add(makeGUI());
 
-        mainFame.pack(); // this sets the dimensions of the GUI automatically
+        mainFrame.setTitle("Main Search");
 
-        mainFame.setVisible(true);
+        mainFrame.pack(); // this sets the dimensions of the GUI automatically
+
+        mainFrame.setVisible(true);
 
         isStarted = true;
     }
@@ -162,12 +179,12 @@ public class businessSearchGUI {
         JPanel businessPanel = new JPanel(new GridBagLayout());
 
         JPanel searchInfoPanel = basicInformationInputGrid();
-       
-        //JPanel searchAdvancedInfoPanel = AdvancedInformationInputGrid();
 
         JPanel searchResultPanel = basicSearchResultsPanel();
 
         JPanel filterDataPanel = new JPanel();
+
+        JPanel specialSearchPanel = specialSearchPanel();
 
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
 
@@ -180,18 +197,15 @@ public class businessSearchGUI {
 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
         filterDataPanel.add(separatorLabel, gridBagConstraints);
 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 1;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
         filterDataPanel.add(searchInfoPanel, gridBagConstraints);
-        
-//        gridBagConstraints.gridx = 0;
-//        gridBagConstraints.gridy = 3;
-//        gridBagConstraints.anchor = GridBagConstraints.WEST;
-//        filterDataPanel.add(searchAdvancedInfoPanel, gridBagConstraints);
 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -202,6 +216,12 @@ public class businessSearchGUI {
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
         businessPanel.add(searchResultPanel, gridBagConstraints);
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+//        gridBagConstraints.gridwidth = 10;
+        filterDataPanel.add(specialSearchPanel, gridBagConstraints);
 
         return businessPanel;
     }
@@ -222,6 +242,8 @@ public class businessSearchGUI {
 
         inputGrid.setLayout(new GridBagLayout());
 
+//        inputGrid.setBorder(BorderFactory.createLineBorder(Color.black));
+
         GridBagConstraints gridConstraints = new GridBagConstraints();
 
         for (int i = 0; i < MAX_POSITIONS; i++) {
@@ -231,6 +253,7 @@ public class businessSearchGUI {
             gridConstraints.ipadx = 5;
             gridConstraints.ipady = 5;
             gridConstraints.anchor = GridBagConstraints.WEST;
+            gridConstraints.gridwidth = 1;
             switch (i) {
                 case 0:
                     gridConstraints.anchor = GridBagConstraints.WEST;
@@ -314,6 +337,7 @@ public class businessSearchGUI {
                     break;
                 case 48:
                     gridConstraints.anchor = GridBagConstraints.WEST;
+                    gridConstraints.gridwidth = 2;
                     inputGrid.add(separatorLabel2,gridConstraints);
                     break;
                 case 52:
@@ -343,86 +367,15 @@ public class businessSearchGUI {
                 case 68:
                     inputGrid.add(searchButton,gridConstraints);
                     break;
-                default:
-                    inputGrid.add(new JLabel(), gridConstraints);
-                    break;
+//                default:
+//                    inputGrid.add(new JLabel(), gridConstraints);
+//                    break;
             }
         }
 
         return inputGrid;
     }
 
-    private JPanel AdvancedInformationInputGrid() {
-        final int ROWS2 = 9;
-        final int COLUMNS2 = 4;
-        final int MAX_POSITIONS2 = ROWS2 * COLUMNS2;
-
-        JPanel inputGrid2 = new JPanel();
-
-        inputGrid2.setLayout(new GridBagLayout());
-
-        GridBagConstraints gridConstraints = new GridBagConstraints();
-
-        for (int i = 0; i < MAX_POSITIONS2; i++) {
-            int[] gridPositions = indexConverter(i, COLUMNS2);
-            gridConstraints.gridx = gridPositions[0];
-            gridConstraints.gridy = gridPositions[1];
-            switch (i) {
-                case 0:
-                	inputGrid2.add(businessIDsLabel, gridConstraints);
-                    break;
-                case 1:
-                    gridConstraints.ipadx = TEXT_BOX_WIDTH;
-                    inputGrid2.add(businessIdsCheckBox, gridConstraints);
-                    break;
-                case 2:
-                	inputGrid2.add(hoursLabel, gridConstraints);
-                    break;
-                case 3:
-                	inputGrid2.add(hoursCheckBox, gridConstraints);
-                    break;
-                case 4:
-                	inputGrid2.add(parkingLabel, gridConstraints);
-                    break;
-                case 5:
-                	inputGrid2.add(parkingCheckBox, gridConstraints);
-                    break;
-                case 6:
-                	inputGrid2.add(addressLabel, gridConstraints);
-                    break;
-                case 7:
-                	inputGrid2.add(addressCheckBox, gridConstraints);
-                    break;
-                case 8:
-                	inputGrid2.add(reviewsLabel, gridConstraints);
-                    break;
-                case 9:
-                	inputGrid2.add(reviewsCheckBox, gridConstraints);
-                    break;
-                case 12:
-                	inputGrid2.add(tipsLabel, gridConstraints);
-                    break;
-                case 13:
-                	inputGrid2.add(tipsCheckBox, gridConstraints);
-                    break;
-                case 16:
-                	inputGrid2.add(restaurantInfoLabel, gridConstraints);
-                    break;
-                case 17:
-                	inputGrid2.add(restaurantInfoCheckBox, gridConstraints);
-                    break;
-                case 32:
-                	inputGrid2.add(queryButton, gridConstraints);
-                    break;
-                default:
-                	inputGrid2.add(new JLabel(), gridConstraints);
-                    break;
-            }
-            gridConstraints.ipadx = 0;
-        }
-
-        return inputGrid2;
-    }
     /**
      * Creates a panel to be used for displaying and selecting items from our initial search.
      *
@@ -462,12 +415,49 @@ public class businessSearchGUI {
     }
 
     /**
+     * Method to make the last piece of the main GUI, contains all the buttons to do special searches
+     * @return A JPanel built with all the search buttons
+     */
+    private JPanel specialSearchPanel(){
+        JPanel specialSearch = new JPanel(new GridBagLayout());
+
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
+
+//        gridBagConstraints.anchor = GridBagConstraints.WEST;
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        specialSearch.add(specialSearchLabel,gridBagConstraints);
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        specialSearch.add(separatorLabel3,gridBagConstraints);
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        specialSearch.add(shortestChainButton,gridBagConstraints);
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        specialSearch.add(userSummaryButton,gridBagConstraints);
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        specialSearch.add(furthestSpreadButton,gridBagConstraints);
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        specialSearch.add(bestLocalButton,gridBagConstraints);
+
+        return specialSearch;
+    }
+
+    /**
      * Method to take results from an initial filter search and place them into the initial search table.
      *
      * @param resultData The data from the initial search packed into basicBusinessDataFrames.
-	 * @param headers The header labels of each column
      */
-    public void updateSearchPanel(ResultSet resultData) {
+    private void updateSearchPanel(ResultSet resultData) {
 		if (!isStarted) {
             throw new NullPointerException();
 		}
@@ -678,4 +668,53 @@ public class businessSearchGUI {
 			updateSearchPanel(result);
         }
     }
+
+    /**
+     * ActionListener that is linked to the shortest chain button, opens a new window to search
+     */
+    private class shortestChainHandler implements ActionListener{
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            shortestChainGUI shortest = new shortestChainGUI();
+            shortest.start();
+        }
+    }
+
+    /**
+     * ActionListener that is linked to the user summary button, opens a new window to search
+     */
+    private class userSummaryHandler implements ActionListener{
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            userSummaryGUI userSum = new userSummaryGUI();
+            userSum.start();
+        }
+    }
+
+    /**
+     * ActionListener that is linked to the furthest spread button, opens a new window to search
+     */
+    private class furthestSpreadHandler implements ActionListener{
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            furthestSpreadGUI furthest = new furthestSpreadGUI();
+            furthest.start();
+        }
+    }
+
+    /**
+     * ActionListener that is linked to the best local button, opens a new window to search
+     */
+    private class bestLocalHandler implements ActionListener{
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            bestLocalGUI best = new bestLocalGUI();
+            best.start();
+        }
+    }
+
 }
