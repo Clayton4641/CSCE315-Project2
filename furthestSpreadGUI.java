@@ -2,6 +2,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
+import java.util.ArrayList;
 
 /**
  * Class to contain the creation of the furthest spread search GUI.
@@ -18,12 +23,13 @@ public class furthestSpreadGUI {
 
     private JTextArea resultsText = new JTextArea();
 
-    private final int TEXT_BOX_WIDTH = 100;
-
+	private final int TEXT_BOX_WIDTH = 100;
+	
     /**
      * Builds and starts the furthest spread GUI.
      */
     public void start(){
+
         searchStateButton.addActionListener(new furthestHandler());
 
         JFrame mainFrame = new JFrame();
@@ -92,12 +98,64 @@ public class furthestSpreadGUI {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            String cityName = stateNameText.getText().strip();
+			
+            String stateName = stateNameText.getText().strip();
 
-            if (cityName.isEmpty()){
+            if (stateName.isEmpty()){
                 resultsText.setText("A state must be entered.");
             } else {
-                //do something
+				String command = "SELECT businesses.name, businesses. FROM businesses WHERE businesses.business_id IN (SELECT business_id FROM address WHERE state = \'" + 
+					stateNameText.getText().strip() + "\')'";
+				
+				try {
+					HashMap<String, ArrayList<GeoLocation>> businessMap = new HashMap<String, ArrayList<GeoLocation>>();
+					HashMap<String, Double> businessSpread = new HashMap<String, Double>();
+
+					ResultSet result = client.queryFor(command);
+
+					// Process data into a hash map
+					while (result.next()) {
+						String businessName = result.getString("name");
+						double longitude = Double.parseDouble(result.getString("longitude"));
+						double latitude = Double.parseDouble(result.getString("latitude"));
+
+						GeoLocation location = new GeoLocation(longitude, latitude);
+
+						if (businessMap.containsKey(businessName)) {
+							businessMap.get(businessName).add(location);
+						} else {
+							businessMap.put(businessName, new ArrayList<GeoLocation>());
+							businessMap.get(businessName).add(location);
+						}
+					}
+
+					// Process hash map to find franchises.
+					for (Map.Entry<String, ArrayList<GeoLocation>> entry : businessMap.entrySet()) {
+						String businessName = entry.getKey();
+
+						double distance = DistanceFinder.longestDistance(entry.getValue().toArray(new GeoLocation[entry.getValue().size()]));
+
+						if (distance != 0.0) {
+							if (businessSpread.containsKey(businessName)) {
+								if (businessSpread.get(businessName).doubleValue() < distance) {
+									businessSpread.put(businessName, distance);
+								}
+							} else {
+								businessSpread.put(entry.getKey(), distance);
+							}
+						}
+					}
+
+					// Find the top 5 franchises
+					Stream<Map.Entry<String, Double>> sortedSet = businessSpread.entrySet().stream().sorted(Map.Entry.comparingByValue()).limit(5);
+
+					sortedSet.forEach(System.out::println);
+
+				} catch (Exception sqlException) {
+					sqlException.printStackTrace();
+				}
+				
+				
             }
         }
     }
