@@ -16,7 +16,6 @@ import java.sql.*;
 public class businessSearchGUI {
 
     //Main Search GUI Items/////////////////////////////////////////////////////////////////////////////////////////////
-	private JDBCpostgreSQLClient client;
 
     private JFrame mainFrame = new JFrame();
 
@@ -119,7 +118,7 @@ public class businessSearchGUI {
     public void start() {
 		
 		// Connect to database.
-		client = new JDBCpostgreSQLClient("jdbc:postgresql://csce-315-db.engr.tamu.edu/Team912_D16_DB", "username", "password");
+		SQLClient.client = new JDBCpostgreSQLClient("jdbc:postgresql://csce-315-db.engr.tamu.edu/Team912_D16_DB", "username", "password");
 		
         //first set up the starsPanel, lowerRangeStarsList, upperRangeStarsList
         ArrayList<String> rangeElements = new ArrayList<>();
@@ -662,7 +661,7 @@ public class businessSearchGUI {
 
 			System.out.println(q);
 
-			ResultSet result = client.queryFor(q);
+			ResultSet result = SQLClient.client.queryFor(q);
 			System.out.println("DONE WITH QUERY");
 
 			updateSearchPanel(result);
