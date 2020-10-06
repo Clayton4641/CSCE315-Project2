@@ -2,6 +2,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.LinkedList;
 
 /**
  * Class to contain the creation of the Best Local Restaurant GUI.
@@ -97,8 +100,60 @@ public class bestLocalGUI {
             if (cityName.isEmpty()){
                 resultsText.setText("A city must be entered.");
             } else {
-                //do something
+                String s = findBestLocal(cityName);
+                ResultSet restaurantTips = SQLClient.client.queryFor(s);
+                String result = "";
+
+                while (true) {
+                    try {
+                        if (!restaurantTips.next()) break;
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+                    try {
+                        result = result + restaurantTips.getString("name");
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+                    result = result + " : ";
+                    try {
+                        result = result + restaurantTips.getString("text");
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+                    result = result + "\n";
+                }
+
+                resultsText.setText(result);
             }
         }
+    }
+
+    private String findBestLocal(String cityName){
+        return ("FROM businesses,  " +
+                "WHERE businesses.business_id = tips.business_id " +
+                "AND tips.business_id = (SELECT tips.business_id " +
+                "FROM tips " +
+                "WHERE business_id IN (" +
+                "SELECT business_id " +
+                "FROM businesses " +
+                "WHERE name IN (" +
+                "SELECT name " +
+                "FROM businesses " +
+                "GROUP BY name " +
+                "HAVING ( COUNT(name) = 1) " +
+                "AND name IN (" +
+                "SELECT name " +
+                "FROM businesses " +
+                "WHERE business_id IN (" +
+                "SELECT business_id " +
+                "FROM restaurants " +
+                "WHERE business_id IN (" +
+                "SELECT business_id " +
+                "FROM address " +
+                "WHERE city = '" + cityName + "'))))) " +
+                "GROUP BY business_id " +
+                "ORDER BY COUNT(*) DESC " +
+                "LIMIT 1)");
     }
 }
