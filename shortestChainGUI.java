@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -11,8 +12,8 @@ import java.util.*;
  */
 public class shortestChainGUI {
     private JLabel shortestChainLabel = new JLabel("Shortest Chain");
-    private JLabel restaurant1Label = new JLabel("Restaurant One:");
-    private JLabel restaurant2Label = new JLabel("Restaurant Two:");
+    private JLabel restaurant1Label = new JLabel("Restaurant One ID:");
+    private JLabel restaurant2Label = new JLabel("Restaurant Two ID:");
     private JLabel separatorLabel = new JLabel("-----------------------------------------------------------------------------------------------");
 
     private JTextField restaurant1Test = new JTextField();
@@ -20,14 +21,28 @@ public class shortestChainGUI {
     private JTextArea resultArea = new JTextArea();
 
     private JButton shortestChainButton = new JButton("Find Shortest Chain"); // need to link to action listened
+    private JButton updateLocalData = new JButton("Refresh Review Data");
 
-    private final int TEXT_BOX_WIDTH = 100;
+    private final int TEXT_BOX_WIDTH = 150;
+
+    private final String DATA_FILE_NAME = "IDs.csv";
+
+    private Dictionary<String,LinkedList<String>> busToUser = new Hashtable<>();
+    private Dictionary<String,LinkedList<String>> userToBus = new Hashtable<>();
 
     /**
      * Builds and starts the shortest chain GUI.
      */
     public void start(){
+
+        try {
+            mapDataFromFile(userToBus,busToUser); // init the dictionaries for searching
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
         shortestChainButton.addActionListener(new shortestChainAction());
+        updateLocalData.addActionListener(new updateDataAction());
 
         JFrame mainFrame = new JFrame();
 
@@ -49,7 +64,7 @@ public class shortestChainGUI {
     private JPanel makeShortestChainPanel(){
 
         resultArea.setLineWrap(true);
-        resultArea.setColumns(40);
+        resultArea.setColumns(48);
         resultArea.setRows(5);
 
         JPanel shortestPathPanel = new JPanel(new GridBagLayout());
@@ -92,11 +107,14 @@ public class shortestChainGUI {
         gridBagConstraints.ipadx = 0;
         shortestPathPanel.add(shortestChainButton,gridBagConstraints);
 
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.ipadx = 0;
+        shortestPathPanel.add(updateLocalData,gridBagConstraints);
+
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-//        gridBagConstraints.ipadx = 25;
-//        gridBagConstraints.ipady = 25;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
         shortestPathPanel.add(resultArea,gridBagConstraints);
 
         return shortestPathPanel;
@@ -116,21 +134,45 @@ public class shortestChainGUI {
                 resultArea.setText("Both restaurants must be entered.");
             }
             else {
-                // do something
-                String s = findShortestChain(id1,id2);
-                System.out.println(s);
+                String s = null;
+                try {
+
+                    File tempFile = new File(DATA_FILE_NAME); // if the local id data is not here download it
+                    if(!tempFile.exists()){
+                        pullerUserAndReviewData();
+                    }
+
+                    s = findShortestChain(id1,id2); // run the search
+
+                } catch (SQLException | IOException throwables) {
+                    throwables.printStackTrace();
+                }
+
+                resultArea.setText(s); // display results
             }
         }
     }
 
-    private static String buildUserIdGetter(String businessId){
-        return "SELECT user_id " + "From reviews" + " Where (business_id = '" + businessId + "') and (stars LIKE '3.%' OR stars LIKE '4.%' or stars LIKE '5.%');";
+    /**
+     * Action listener to update local id data from the data base.
+     */
+    private class updateDataAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                pullerUserAndReviewData();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
     }
 
-    private static String buildBusinessIdGetter(String userID){
-        return "SELECT business_id " + "From reviews" + " Where (user_id = '"+ userID +"') and (stars LIKE '3.%' OR stars LIKE '4.%' or stars LIKE '5.%');";
-    }
-
+    /**
+     * Inner class to help store chain information from user to user linked to a business id.
+     */
     private class node{
         public String id;
         public LinkedList<String> path = new LinkedList<>();
@@ -143,7 +185,15 @@ public class shortestChainGUI {
         }
     }
 
+    /**
+     * Breadth First Search to find the chain between two given businesses.
+     * @param startID The business Id to start the search off with
+     * @param targetID The business Id to find the chain for
+     * @return A Linked list that contains the user IDs that make the chain
+     * @throws SQLException
+     */
     private LinkedList<String> bfs(String startID, String targetID) throws SQLException {
+
         Queue<node> toVisit = new LinkedList<>();
         Set<String> visitedBusinesses = new HashSet<>();
         Set<String> visitedCustomers = new HashSet<>();
@@ -154,42 +204,110 @@ public class shortestChainGUI {
         while(!toVisit.isEmpty()){
             node v = toVisit.remove();
 
-            if (v.id.compareTo(targetID) == 0){
+            if (v.id.compareTo(targetID) == 0){ // if goal stop
                 return v.path;
             }
+
             // get the users that have been here
-            ResultSet userIDTable = SQLClient.client.queryFor(buildUserIdGetter(v.id));
+            LinkedList<String> users = busToUser.get(v.id);
             // 5YvcrqwD4irC_-j-vNC5TA
             // uYn9um4e0ymbhneJ2VLoYg
 
-            while(userIDTable.next()){
-                String userID = userIDTable.getString(1);
+            for(String userID : users){
 
                 if (!visitedCustomers.contains(userID)){
 
                     visitedCustomers.add(userID);
 
-                    ResultSet businessIDTable = SQLClient.client.queryFor(buildBusinessIdGetter(userID));
+                    LinkedList<String> businesses = userToBus.get(userID);
 
-                    while (businessIDTable.next()){
-                        String businessId = businessIDTable.getString(1);
+                    for(String businessId : businesses){
 
                         if (!visitedBusinesses.contains(businessId)){
 
                             visitedBusinesses.add(businessId);
                             LinkedList<String> temp = new LinkedList<>();
-                            temp.addAll(v.path);
-                            temp.add(userID);
+                            temp.addAll(v.path); // deep copy of the list
+                            temp.add(userID); // add new action
+
+                            if (businessId.compareTo(targetID) == 0){ // if goal return
+                                return temp;
+                            }
+
                             toVisit.add(new node(businessId,temp));
                         }
                     }
                 }
             }
         }
-        return null;
+        return null; // fail
     }
 
-    private String findShortestChain(String id1, String id2){
+    /**
+     * method to download the needed id data to run the search in a reasonable amount of time
+     * @throws SQLException
+     * @throws IOException
+     */
+    private void pullerUserAndReviewData() throws SQLException, IOException {
+        String command = "SELECT user_id, business_id, review_id " +
+                "From reviews " +
+                "Where (stars LIKE '3.%' OR stars LIKE '4.%' or stars LIKE '5.%');";
+        ResultSet res = SQLClient.client.queryFor(command);
+
+        FileWriter myFile = new FileWriter(DATA_FILE_NAME);
+
+        while (res.next()){
+            String line = "";
+            line = res.getString(1) + "," + res.getString(2)+","+res.getString(3)+",\n"; // userID,busID,reviewid
+
+            myFile.write(line);
+        }
+        myFile.close();
+    }
+
+    /**
+     * Method to map the downloaded file data to dictionaries.
+     * @param userToBus The dictionary that will take a userID and return a list of businesses
+     * @param BusToUser The dictionary that will take a BusinessID and return a list of users
+     * @throws FileNotFoundException
+     */
+    private void mapDataFromFile(Dictionary<String, LinkedList<String>> userToBus, Dictionary<String, LinkedList<String>> BusToUser) throws FileNotFoundException {
+        Scanner myFile = new Scanner(new File(DATA_FILE_NAME));
+
+        while(myFile.hasNextLine()){
+            String line = myFile.nextLine();
+            String [] parts = line.split(",");
+
+            LinkedList<String> t = userToBus.get(parts[0]);
+            if(t != null){
+                t.add(parts[1]);
+            } else {
+                t = new LinkedList<>();
+                t.add(parts[1]);
+
+                userToBus.put(parts[0], t);
+            }
+
+            t = BusToUser.get(parts[1]);
+            if(t != null){
+                t.add(parts[0]);
+            } else {
+                t = new LinkedList<>();
+                t.add(parts[0]);
+
+                BusToUser.put(parts[1], t);
+            }
+        }
+    }
+
+    /**
+     * Method to find the shortest chain between 2 restaurants
+     * @param id1 The id of the business to start the search at
+     * @param id2 The id of the business to be the goal in the search
+     * @return A string of usernames that form the chain
+     * @throws SQLException
+     */
+    private String findShortestChain(String id1, String id2) throws SQLException {
         LinkedList<String> pathlist = null;
         try {
             pathlist = bfs(id1, id2);
@@ -199,10 +317,11 @@ public class shortestChainGUI {
         String result = "";
 
         for(String i : pathlist){
-            result += i;
-            result += " -> ";
+            ResultSet res = SQLClient.client.queryFor("Select name From users Where user_id = '"+i+"';");
+            res.next();
+            result += res.getString(1)+ ", ";
         }
 
-        return result;
+        return result.substring(0,result.length()-2);
     }
 }
