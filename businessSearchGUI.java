@@ -118,7 +118,7 @@ public class businessSearchGUI {
     public void start() {
 		
 		// Connect to database.
-		SQLClient.client = new JDBCpostgreSQLClient("jdbc:postgresql://csce-315-db.engr.tamu.edu/Team912_D16_DB", "username", "password");
+		SQLClient.client = new JDBCpostgreSQLClient(SQLClient.database, SQLClient.username, SQLClient.password);
 		
         //first set up the starsPanel, lowerRangeStarsList, upperRangeStarsList
         ArrayList<String> rangeElements = new ArrayList<>();
