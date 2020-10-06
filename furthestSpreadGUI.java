@@ -4,7 +4,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 import java.util.ArrayList;
 
@@ -104,34 +106,67 @@ public class furthestSpreadGUI {
             if (stateName.isEmpty()){
                 resultsText.setText("A state must be entered.");
             } else {
-				String command = "SELECT businesses.name, businesses. FROM businesses WHERE businesses.business_id IN (SELECT business_id FROM address WHERE state = \'" + 
-					stateNameText.getText().strip() + "\')'";
-				
+				String command = "SELECT businesses.name, businesses.longitude, businesses.latitude, businesses.stars FROM businesses WHERE businesses.business_id IN (SELECT business_id FROM address WHERE state = \'" + 
+					stateNameText.getText().toUpperCase().strip() + "\')";
+
+				long start = 0;
+				long end = 0;
+
 				try {
+
 					HashMap<String, ArrayList<GeoLocation>> businessMap = new HashMap<String, ArrayList<GeoLocation>>();
+					HashMap<String, ArrayList<Double>> businessRating = new HashMap<String, ArrayList<Double>>();
 					HashMap<String, Double> businessSpread = new HashMap<String, Double>();
 
-					ResultSet result = client.queryFor(command);
+					ResultSet result = SQLClient.client.queryFor(command);
+
+					start = System.currentTimeMillis();
 
 					// Process data into a hash map
 					while (result.next()) {
 						String businessName = result.getString("name");
 						double longitude = Double.parseDouble(result.getString("longitude"));
 						double latitude = Double.parseDouble(result.getString("latitude"));
+						double stars = Double.parseDouble(result.getString("stars"));
 
 						GeoLocation location = new GeoLocation(longitude, latitude);
 
 						if (businessMap.containsKey(businessName)) {
 							businessMap.get(businessName).add(location);
+							businessRating.get(businessName).add(stars);
 						} else {
 							businessMap.put(businessName, new ArrayList<GeoLocation>());
 							businessMap.get(businessName).add(location);
+
+							businessRating.put(businessName, new ArrayList<Double>());
+							businessRating.get(businessName).add(stars);
 						}
 					}
 
-					// Process hash map to find franchises.
+					HashMap<String, Double> businessAverageRating = new HashMap<String, Double>();
+
+					for (Map.Entry<String, ArrayList<Double>> entry : businessRating.entrySet()) {
+
+						double avgRating = 0.0;
+
+						for (Double star : entry.getValue()) {
+							avgRating += star.doubleValue();
+						}
+
+						avgRating = avgRating / entry.getValue().size();
+
+						//System.out.println(entry.getKey() + " has a size of " + entry.getValue().size() + " and a avg rating of " + avgRating);
+
+						businessAverageRating.put(entry.getKey(), avgRating);
+					}
+
+					// Process hash map to find franchises with a 3.5 rating or higher.
 					for (Map.Entry<String, ArrayList<GeoLocation>> entry : businessMap.entrySet()) {
 						String businessName = entry.getKey();
+
+						if (businessAverageRating.get(businessName).doubleValue() < 3.5) {
+							continue;
+						}
 
 						double distance = DistanceFinder.longestDistance(entry.getValue().toArray(new GeoLocation[entry.getValue().size()]));
 
@@ -146,16 +181,49 @@ public class furthestSpreadGUI {
 						}
 					}
 
-					// Find the top 5 franchises
-					Stream<Map.Entry<String, Double>> sortedSet = businessSpread.entrySet().stream().sorted(Map.Entry.comparingByValue()).limit(5);
+					Stream<Map.Entry<String, Double>> sortedSet = businessSpread.entrySet().stream().sorted(Map.Entry.comparingByValue());
 
-					sortedSet.forEach(System.out::println);
+					String output = "";
+
+					Iterator<Entry<String, Double>> iter = sortedSet.iterator();
+					ArrayList<Entry<String, Double>> array = new ArrayList<Entry<String, Double>>();
+
+					while (iter.hasNext()) { 
+						array.add(iter.next());
+					}
+
+					System.out.println(array.size() + " franchises with an average rating of 3.5 or higher found.");
+
+					if (array.size() >= 5)
+					{
+						for (int i = array.size() - 1; i > array.size() - 6; --i) {
+							output += 
+							array.get(i).getKey() + 
+							"\n        Distance: " + array.get(i).getValue() + " km" +
+							"\n        Average Rating: " + businessAverageRating.get(array.get(i).getKey()) + "\n";
+						}
+					} else {
+						for (int i = array.size() - 1; i >= 0; --i) {
+							output += 
+							array.get(i).getKey() + 
+							"\n        Distance: " + array.get(i).getValue() + " km" +
+							"\n        Average Rating: " + businessAverageRating.get(array.get(i).getKey()) + "\n";
+						}
+					}
+
+					if (output != "") {
+						resultsText.setText(output);
+					} else {
+						resultsText.setText("There are no franchises with an average rating of 3.5 or higher in " + stateNameText.getText().strip());
+					}
+
+					end = System.currentTimeMillis();
+
+					System.out.println("Operation took " + Long.toString(end - start) + " ms after the SQL query finished.");
 
 				} catch (Exception sqlException) {
 					sqlException.printStackTrace();
 				}
-				
-				
             }
         }
     }

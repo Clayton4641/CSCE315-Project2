@@ -17,7 +17,7 @@ public class DistanceFinder {
 	public static double longestDistance(GeoLocation[] coordinates) {
 
 		if (coordinates.length <= 1) {
-			System.out.println("Not a franchise.");
+			//System.out.println("Not a franchise.");
 			return 0.0;
 		}
 
