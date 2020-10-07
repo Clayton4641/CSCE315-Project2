@@ -130,7 +130,8 @@ public class bestLocalGUI {
     }
 
     private String findBestLocal(String cityName){
-        return ("FROM businesses,  " +
+		return ("SELECT businesses.name, tips.text " +
+				"FROM businesses, tips " +
                 "WHERE businesses.business_id = tips.business_id " +
                 "AND tips.business_id = (SELECT tips.business_id " +
                 "FROM tips " +
