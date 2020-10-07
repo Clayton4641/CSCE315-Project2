@@ -36,8 +36,16 @@ public class shortestChainGUI {
     public void start(){
 
         try {
+            File tempFile = new File(DATA_FILE_NAME); // if the local id data is not here download it
+            if(!tempFile.exists()){
+                pullerUserAndReviewData();
+            }
             mapDataFromFile(userToBus,busToUser); // init the dictionaries for searching
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
