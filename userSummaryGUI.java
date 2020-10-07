@@ -95,9 +95,9 @@ public class userSummaryGUI {
         @Override
         public void actionPerformed(ActionEvent e) {
             String userName = userNameText.getText().strip();
-            String userSumQuery = "SELECT user_id, average_stars, compliment_funny, compliment_cool, compliment_writer FROM users"
-            		+ "WHERE name ='" + userName+ "' AND Cast(review_count as INTEGER) > 5"
-            				+ "ORDER BY user_id"; 
+            String userSumQuery = "SELECT user_id, average_stars, compliment_funny, compliment_cool, compliment_writer FROM users "
+            		+ "WHERE name ='" + userName+ "' AND Cast ( review_count as INTEGER ) > 5 "
+            				+ "ORDER BY user_id ASC Limit 1"; 
             
             if (userName.isEmpty()){
                 resultsText.setText("Must enter a valid username");
@@ -106,13 +106,13 @@ public class userSummaryGUI {
 					ResultSet result = SQLClient.client.queryFor(userSumQuery);
 					result.next();
 					
-					double stars = Double.parseDouble(result.getString("stars")); 
-					int useful = Integer.parseInt(result.getString("useful")); 
-					int funny = Integer.parseInt(result.getString("funny"));
-					int cool = Integer.parseInt(result.getString("cool")); 
+					double stars = Double.parseDouble(result.getString("average_stars")); 
+					int writer = Integer.parseInt(result.getString("compliment_writer")); 
+					int funny = Integer.parseInt(result.getString("compliment_funny"));
+					int cool = Integer.parseInt(result.getString("compliment_cool")); 
 											
-					String queryResult = "userID: " + userNameText.getText() + "average stars: " + stars + "useful received: "
-		            		+ useful + "Funny received: " + funny + "cool received: " + cool; 
+					String queryResult = "Username: " + userNameText.getText() + "\nAverage stars: " + stars + "\nWriter received: "
+		            		+ writer + "\nFunny received: " + funny + "\nCool received: " + cool; 
 		            resultsText.setText(queryResult); 
 
 				} catch (Exception sqlException) {
