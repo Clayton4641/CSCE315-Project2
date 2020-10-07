@@ -12,17 +12,9 @@ import java.util.ArrayList;
 public class userSummaryGUI {
     private JLabel userSummaryLabel = new JLabel("User Summary");
     private JLabel separatorLabel4 = new JLabel("-----------------------------------------------------------------------------------------------");
-    private JLabel userIDLabel = new JLabel("User ID:");
-    private JLabel cityTextLabel = new JLabel("City:"); 
-    private JLabel funnyAverageLabel = new JLabel("Average funny rating:");
-    private JLabel coolAverageLabel = new JLabel("Average cool rating:");
-    private JLabel usefulAverageLabel = new JLabel("Average useful rating:");
-    private JLabel funnyAverageResultsLabel = new JLabel();
-    private JLabel coolAverageResultsLabel = new JLabel();
-    private JLabel usefulAverageResultsLabel = new JLabel();
-
-    private JTextField userIDText = new JTextField();
-    private JTextField cityText = new JTextField(); 
+    private JLabel userIDLabel = new JLabel("User Name:");
+    
+    private JTextField userNameText = new JTextField();
     private JTextArea resultsText = new JTextArea();
 
 
@@ -81,39 +73,14 @@ public class userSummaryGUI {
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.ipadx = TEXT_BOX_WIDTH;
-        userSum.add(userIDText,gridBagConstraints);
+        userSum.add(userNameText,gridBagConstraints);
 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.ipadx = 0;
-        userSum.add(usefulAverageLabel,gridBagConstraints);
-
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        userSum.add(usefulAverageResultsLabel,gridBagConstraints);
-
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        userSum.add(funnyAverageLabel,gridBagConstraints);
-
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        userSum.add(funnyAverageResultsLabel,gridBagConstraints);
-
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        userSum.add(coolAverageLabel,gridBagConstraints);
-
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        userSum.add(coolAverageResultsLabel,gridBagConstraints);
-
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
         userSum.add(userSearchButton,gridBagConstraints);
         
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         userSum.add(resultsText,gridBagConstraints);
 
@@ -127,41 +94,25 @@ public class userSummaryGUI {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            String userID = userIDText.getText().strip();
-            String city = cityText.getText().strip(); 
+            String userName = userNameText.getText().strip();
+            String userSumQuery = "SELECT user_id, average_stars, compliment_funny, compliment_cool, compliment_writer FROM users"
+            		+ "WHERE name ='" + userName+ "' AND Cast(review_count as INTEGER) > 5"
+            				+ "ORDER BY user_id"; 
             
-            
-            String userSumQuery = "SELECT user_id, review_id, stars, useful, funny, cool FROM reviews "
-            		+ "WHERE user_id=" + userID; 
-            if(!city.equals("")) {
-            	userSumQuery = userSumQuery +  "AND business_id IN " + "(SELECT business_id FROM "
-        				+ "address WHERE city=" + city + ")"; 
-            }
-           
-
-            if (userID.isEmpty()){
-                usefulAverageResultsLabel.setText("Must enter an user ID.");
+            if (userName.isEmpty()){
+                resultsText.setText("Must enter a valid username");
             } else {
 					try {
 					ResultSet result = SQLClient.client.queryFor(userSumQuery);
-					int sumCool = 0, sumUseful = 0, sumFunny = 0, avgStars = 0, rowsCount = 0; 
-
-					while (result.next()) {
-						int stars = Integer.parseInt(result.getString("stars")); 
-						int useful = Integer.parseInt(result.getString("useful")); 
-						int funny = Integer.parseInt(result.getString("funny"));
-						int cool = Integer.parseInt(result.getString("cool")); 
-						
-						avgStars = avgStars + stars; 
-						sumUseful = sumUseful + useful; 
-						sumFunny = sumFunny + funny; 
-						sumCool = sumCool + cool; 
-						rowsCount ++; 
-					}
-					avgStars = avgStars / rowsCount; 
+					result.next();
 					
-					String queryResult = "userID:" + userIDText.getText() + "average stars:" + avgStars + "sum of useful"
-		            		+ sumUseful + "sum of Funny" + sumFunny + "sum Of cool" + sumCool; 
+					double stars = Double.parseDouble(result.getString("stars")); 
+					int useful = Integer.parseInt(result.getString("useful")); 
+					int funny = Integer.parseInt(result.getString("funny"));
+					int cool = Integer.parseInt(result.getString("cool")); 
+											
+					String queryResult = "userID: " + userNameText.getText() + "average stars: " + stars + "useful received: "
+		            		+ useful + "Funny received: " + funny + "cool received: " + cool; 
 		            resultsText.setText(queryResult); 
 
 				} catch (Exception sqlException) {
